@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+CGO_ENABLED=0 go build
+
+VERSION=v0.12.0
+docker build -t smartctl-exporter:$VERSION .

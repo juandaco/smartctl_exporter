@@ -1,14 +1,13 @@
-ARG ARCH="amd64"
-ARG OS="linux"
-FROM alpine:3
-LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
+FROM golang:1.24 AS builder
+WORKDIR /build
+COPY go.mod go.sum ./
+RUN go mod download
+COPY ./ ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o smartctl_exporter
 
+FROM alpine:3 AS runner
 RUN apk add smartmontools
-
-ARG ARCH="amd64"
-ARG OS="linux"
-COPY .build/${OS}-${ARCH}/smartctl_exporter /bin/smartctl_exporter
-
-EXPOSE      9633
-USER        nobody
-ENTRYPOINT  [ "/bin/smartctl_exporter" ]
+COPY --from=builder /build/smartctl_exporter /bin/smartctl_exporter
+EXPOSE 9633
+USER nobody
+ENTRYPOINT [ "/bin/smartctl_exporter" ]
